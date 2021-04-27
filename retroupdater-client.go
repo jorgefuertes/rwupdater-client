@@ -8,6 +8,7 @@ import (
 
 	"git.martianoids.com/queru/retroupdater-client/lib/client"
 	"github.com/alecthomas/kong"
+	"github.com/dustin/go-humanize"
 )
 
 // Config
@@ -18,13 +19,12 @@ type Config struct {
 
 // Stats
 type Stats struct {
-	Updated    int
-	Created    int
+	Download   int
 	UpToDate   int
-	DirCreated int
+	Dir        int
 	Total      int
+	TotalBytes uint64
 	Begin      time.Time
-	End        time.Time
 }
 
 // check for error
@@ -53,11 +53,15 @@ func main() {
 	_, err := os.Stat(cfg.Root)
 	check(err)
 
+	fmt.Printf("Getting catalog...")
 	files, err := client.GetCatalog(cfg.Arch)
 	check(err)
+	fmt.Println("OK")
 
 	for _, file := range *files {
 		stats.Total += 1
+
+		// check and create dir
 		_, err := os.Stat(cfg.Root + "/" + file.Path)
 		if err != nil {
 			fmt.Printf("Creating dir %s...", file.Path)
@@ -66,7 +70,20 @@ func main() {
 				check(err)
 			}
 			fmt.Println("OK")
-			stats.DirCreated += 1
+			stats.Dir += 1
+		}
+
+		// check file, download if doesn't exists
+		_, err = os.Stat(cfg.Root + "/" + file.Path + "/" + file.Name)
+		if err != nil {
+			stats.TotalBytes += client.Download(cfg.Arch, cfg.Root, &file)
+			stats.Download += 1
 		}
 	}
+
+	// stats
+	fmt.Printf("Completed in %.2f seconds\n", time.Since(stats.Begin).Seconds())
+	fmt.Printf("%v files checked, %v were up to date\n", stats.Total, stats.UpToDate)
+	fmt.Printf("%v dirs created, %v files download, %s\n",
+		stats.Dir, stats.Download, humanize.Bytes(stats.TotalBytes))
 }
