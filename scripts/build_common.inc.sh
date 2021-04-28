@@ -35,6 +35,9 @@ TIME=$(date +"%d-%m-%Y@%H:%M:%S")
 BUILD_LIST=(
 	"darwin/amd64"
 	"linux/amd64"
+	"linux/arm"
+	"linux/arm64"
+	"windows/amd64"
 )
 
 if [[ -f .build ]]
@@ -47,6 +50,8 @@ BUILD=$(($BUILD + 1))
 echo $BUILD > .build
 
 FLAGS="-s -w \
+	-X git.martianoids.com/queru/retroupdater-client/lib/build.os=${OS} \
+	-X git.martianoids.com/queru/retroupdater-client/lib/build.os=${ARCH} \
 	-X git.martianoids.com/queru/retroupdater-client/lib/build.version=${VER} \
 	-X git.martianoids.com/queru/retroupdater-client/lib/build.user=${WHO} \
 	-X git.martianoids.com/queru/retroupdater-client/lib/build.time=${TIME} \

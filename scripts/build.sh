@@ -19,7 +19,7 @@ do
 	OS=${THIS[0]}
 	ARCH=${THIS[1]}
 	EXT=""
-	[[ $ARCH == "windows" ]] && EXT=".exe"
+	[[ $OS == "windows" ]] && EXT=".exe"
     GOOS=$OS GOARCH=$ARCH go build -ldflags "${FLAGS}" \
 		-o "bin/${EXE_NAME}_${VER}-${OS}_${ARCH}${EXT}" \
 		retroupdater-client.go
@@ -41,7 +41,7 @@ do
 	OS=${THIS[0]}
 	ARCH=${THIS[1]}
 	FILE="${EXE_NAME}_${VER}-${OS}_${ARCH}"
-	if [[ $ARCH == "windows" ]]
+	if [[ $OS == "windows" ]]
 	then
 		zip -q dist/$FILE.zip bin/$FILE.exe
 	else

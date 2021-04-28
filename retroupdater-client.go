@@ -7,15 +7,20 @@ import (
 	"strings"
 	"time"
 
+	"git.martianoids.com/queru/retroupdater-client/lib/build"
 	"git.martianoids.com/queru/retroupdater-client/lib/client"
 	"github.com/alecthomas/kong"
 	"github.com/dustin/go-humanize"
 )
 
-// Config
-type Config struct {
-	Arch string `arg:"" enum:"mist,mister" help:"FPGA Achitecture: mist or mister."`
-	Root string `arg:"" type:"existingDir" help:"SD card root path."`
+// CLI
+var CLI struct {
+	Version struct {
+	} `cmd:"" help:"Display version and exit."`
+	Update struct {
+		Arch string `arg:"" enum:"mister" help:"FPGA Achitecture: mister."`
+		Root string `arg:"" name:"path" type:"existingDir" help:"SD card root path."`
+	} `cmd:"" help:"Update architecture over given path."`
 }
 
 // Stats
@@ -43,19 +48,25 @@ func main() {
 	stats.Begin = time.Now()
 
 	// command line
-	cfg := new(Config)
-	kong.Parse(cfg)
+	ctx := kong.Parse(&CLI)
+	if ctx.Command() == "version" {
+		fmt.Print(build.Version())
+		os.Exit(0)
+	}
 
-	if len(cfg.Root) > 1 {
-		cfg.Root = strings.TrimSuffix(cfg.Root, "/")
+	root := CLI.Update.Root
+	arch := CLI.Update.Arch
+
+	if len(root) > 1 {
+		root = strings.TrimSuffix(root, "/")
 	}
 
 	// check if sdcard root exists
-	_, err := os.Stat(cfg.Root)
+	_, err := os.Stat(root)
 	check(err)
 
 	fmt.Printf("Getting catalog...")
-	files, err := client.GetCatalog(cfg.Arch)
+	files, err := client.GetCatalog(arch)
 	check(err)
 	fmt.Println("OK")
 
@@ -63,10 +74,10 @@ func main() {
 		stats.Total += 1
 
 		// check and create dir
-		_, err := os.Stat(cfg.Root + "/" + file.Path)
+		_, err := os.Stat(root + "/" + file.Path)
 		if err != nil {
 			fmt.Printf("Creating dir %s...", file.Path)
-			if err := os.MkdirAll(cfg.Root+"/"+file.Path, 0755); err != nil {
+			if err := os.MkdirAll(root+"/"+file.Path, 0755); err != nil {
 				fmt.Println("FAIL")
 				check(err)
 			}
@@ -76,13 +87,13 @@ func main() {
 
 		// check file
 		// download if doesn't exists
-		_, err = os.Stat(cfg.Root + "/" + file.Path + "/" + file.Name)
+		_, err = os.Stat(root + "/" + file.Path + "/" + file.Name)
 		if err != nil {
-			stats.TotalBytes += client.Download(cfg.Arch, cfg.Root, &file)
+			stats.TotalBytes += client.Download(arch, root, &file)
 			stats.Download += 1
 			// delete old version if core
 			if len(file.Version) > 0 {
-				dir, err := ioutil.ReadDir(cfg.Root + "/" + file.Path)
+				dir, err := ioutil.ReadDir(root + "/" + file.Path)
 				if err != nil {
 					fmt.Println("ERROR:", err)
 				} else {
@@ -92,7 +103,7 @@ func main() {
 						}
 						if strings.HasPrefix(entry.Name(), file.Core) {
 							fmt.Printf("Deleting %s...", entry.Name())
-							if err := os.Remove(cfg.Root + "/" + file.Path + "/" + entry.Name()); err != nil {
+							if err := os.Remove(root + "/" + file.Path + "/" + entry.Name()); err != nil {
 								fmt.Printf("FAIL (%s)", err.Error())
 							} else {
 								fmt.Println("OK")

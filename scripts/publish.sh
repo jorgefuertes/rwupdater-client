@@ -4,6 +4,7 @@ SCRIPTS=$(dirname $0)
 SERVER_IP="server.abadiaretro.com"
 SV_HOME="/home/retroserver"
 SV_SERVER_NAME="retroserver"
+CLIENT_HOME="${SV_HOME}/files/client"
 
 $SCRIPTS/build.sh
 if [[ $? -ne 0 ]]
@@ -12,28 +13,15 @@ then
 	exit 1
 fi
 
-rsync \
-	-avz --delete --delete-excluded --exclude=".DS_Store" \
-	$SCRIPTS/../files root@$SERVER_IP:$SV_HOME/.
-
-SERVICE=$(cat $SCRIPTS/service/retroserver.service)
-FILE=$(find $SCRIPTS/../bin -name retroserver_\*-linux_amd64)
-BASENAME=$(basename $FILE)
 ssh root@$SERVER_IP <<-CMD
-	service retroserver stop
-	rm -f $SV_HOME/retroserver_v*
+	mkdir -p $CLIENT_HOME
+	rm -f $CLIENT_HOME/*
 CMD
 
-scp $FILE root@$SERVER_IP:$SV_HOME/.
+scp $SCRIPTS/../bin/* root@$SERVER_IP:$CLIENT_HOME/.
+
 ssh root@$SERVER_IP <<-CMD
-	chmod 700 $SV_HOME/$BASENAME
-	chown retroserver:retroserver $SV_HOME/$BASENAME
-	chown -R retroserver:retroserver $SV_HOME/files
-	ln -sf $SV_HOME/$BASENAME $SV_HOME/$SV_SERVER_NAME
-	chown -h retroserver:retroserver $SV_HOME/$SV_SERVER_NAME
-	echo "${SERVICE}" > /etc/systemd/system/retroserver.service
-	systemctl daemon-reload
-	service retroserver start
+	chown -R retroserver:retroserver $CLIENT_HOME
 CMD
 
 exit 0
