@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/cavaliercoder/grab"
@@ -29,13 +30,15 @@ Loop:
 				humanize.Bytes(uint64(res.BytesComplete())))
 		case <-res.Done:
 			t.Stop()
-			fmt.Println("OK")
+			if res.Err() != nil {
+				fmt.Printf("FAIL (%s)\n", res.Err())
+				fmt.Println("Deleting failed donwload")
+				os.Remove(path + "/" + file.Path + "/" + file.Name)
+			} else {
+				fmt.Println("OK")
+			}
 			break Loop
 		}
-	}
-
-	if err := res.Err(); err != nil {
-		fmt.Println("FAIL")
 	}
 
 	return uint64(res.BytesComplete())

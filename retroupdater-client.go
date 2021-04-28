@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -73,11 +74,34 @@ func main() {
 			stats.Dir += 1
 		}
 
-		// check file, download if doesn't exists
+		// check file
+		// download if doesn't exists
 		_, err = os.Stat(cfg.Root + "/" + file.Path + "/" + file.Name)
 		if err != nil {
 			stats.TotalBytes += client.Download(cfg.Arch, cfg.Root, &file)
 			stats.Download += 1
+			// delete old version if core
+			if len(file.Version) > 0 {
+				dir, err := ioutil.ReadDir(cfg.Root + "/" + file.Path)
+				if err != nil {
+					fmt.Println("ERROR:", err)
+				} else {
+					for _, entry := range dir {
+						if entry.Name() == file.Name {
+							continue
+						}
+						if strings.HasPrefix(entry.Name(), file.Core) {
+							fmt.Printf("Deleting %s...", entry.Name())
+							if err := os.Remove(cfg.Root + "/" + file.Path + "/" + entry.Name()); err != nil {
+								fmt.Printf("FAIL (%s)", err.Error())
+							} else {
+								fmt.Println("OK")
+							}
+						}
+					}
+				}
+			}
+			continue
 		}
 	}
 
