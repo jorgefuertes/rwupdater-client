@@ -3,21 +3,23 @@ package client
 import (
 	"encoding/json"
 	"net/http"
+
+	"git.martianoids.com/queru/retroupdater-client/lib/file"
 )
 
 // GetCatalog - Download catalog for architecture
-func GetCatalog(arch string) (*[]File, error) {
-	var files []File
+func GetCatalog(arch string) (*file.Catalog, error) {
+	cat := new(file.Catalog)
 
 	res, err := http.Get(API + "/files/catalog/" + arch)
 	if err != nil {
-		return &files, err
+		return cat, err
 	}
 	defer res.Body.Close()
 
-	if err := json.NewDecoder(res.Body).Decode(&files); err != nil {
-		return &files, err
+	if err := json.NewDecoder(res.Body).Decode(&cat); err != nil {
+		return cat, err
 	}
 
-	return &files, nil
+	return cat, nil
 }

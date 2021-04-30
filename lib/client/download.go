@@ -5,18 +5,21 @@ import (
 	"os"
 	"time"
 
+	"git.martianoids.com/queru/retroupdater-client/lib/file"
 	"github.com/cavaliercoder/grab"
 	"github.com/dustin/go-humanize"
 )
 
-func Download(arch string, path string, file *File) uint64 {
+const API = "https://core.abadiaretro.com/api"
+
+func Download(arch string, path string, f *file.File) uint64 {
 	gc := grab.NewClient()
 	req, _ := grab.NewRequest(
-		path+"/"+file.Path+"/"+file.Name,
-		API+"/files/download/"+arch+"/"+file.ID,
+		path+"/"+f.Path+"/"+f.Name,
+		API+"/files/download/"+arch+"/"+f.ID,
 	)
 
-	fmt.Printf("Downloading %s...", file.Name)
+	fmt.Printf("Downloading %s...", f.Name)
 	res := gc.Do(req)
 
 	t := time.NewTicker(500 * time.Millisecond)
@@ -26,14 +29,14 @@ Loop:
 	for {
 		select {
 		case <-t.C:
-			fmt.Printf("\rDownloading %s...%s...", file.Name,
+			fmt.Printf("\rDownloading %s...%s...", f.Name,
 				humanize.Bytes(uint64(res.BytesComplete())))
 		case <-res.Done:
 			t.Stop()
 			if res.Err() != nil {
 				fmt.Printf("FAIL (%s)\n", res.Err())
 				fmt.Println("Deleting failed donwload")
-				os.Remove(path + "/" + file.Path + "/" + file.Name)
+				os.Remove(path + "/" + f.Path + "/" + f.Name)
 			} else {
 				fmt.Println("OK")
 			}
