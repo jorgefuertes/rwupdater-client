@@ -1,4 +1,4 @@
-EXE_NAME="retrowiki-updater"
+EXE_NAME="rw-updater"
 
 git status | egrep "On branch master|En la rama master" &> /dev/null
 if [[ $? -ne 0 ]]
@@ -38,6 +38,7 @@ BUILD_LIST=(
 	"linux/arm"
 	"linux/arm64"
 	"windows/amd64"
+	"windows/arm"
 )
 
 if [[ -f .build ]]

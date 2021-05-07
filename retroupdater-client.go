@@ -15,9 +15,10 @@ import (
 
 // CLI
 var CLI struct {
-	Version  struct{} `cmd:"" help:"Display version and exit."`
-	ArchList struct{} `cmd:"" help:"List of supported achitectures."`
-	Update   struct {
+	NoSelfUpd bool     `flag:"" short:"n" help:"Don't try to self update."`
+	Version   struct{} `cmd:"" help:"Display version and exit."`
+	ArchList  struct{} `cmd:"" help:"List of supported achitectures."`
+	Update    struct {
 		Arch string `arg:"" help:"FPGA Achitecture: use arch-list for supported architectures"`
 		Root string `arg:"" name:"path" type:"existingDir" help:"SD card root path."`
 	} `cmd:"" help:"Update architecture over given path. Try update --help."`
@@ -64,8 +65,13 @@ func main() {
 	switch ctx.Command() {
 	case "version":
 		fmt.Print(build.Version())
+		// self update
 		os.Exit(0)
 	case "arch-list":
+		// self update
+		if !CLI.NoSelfUpd {
+			client.CheckUpdate()
+		}
 		fmt.Print("> Getting architecture list...")
 		list, err := client.GetArchList()
 		check(err)
@@ -74,6 +80,11 @@ func main() {
 			fmt.Printf("  - %s\n", arch)
 		}
 		os.Exit(0)
+	default:
+		// self update
+		if !CLI.NoSelfUpd {
+			client.CheckUpdate()
+		}
 	}
 
 	root := CLI.Update.Root
@@ -131,7 +142,7 @@ func main() {
 		// download if doesn't exists
 		_, err := lcat.Find(r.ID)
 		if err != nil {
-			stats.TotalBytes += client.Download(arch, root, &r)
+			stats.TotalBytes += client.UpdateFile(arch, root, &r)
 			stats.Download += 1
 			// delete old versions if its a core
 			for {
