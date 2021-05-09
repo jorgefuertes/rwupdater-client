@@ -41,9 +41,8 @@ func check(err error) {
 		return
 	}
 
-	panic(err)
-	// fmt.Printf("\n> *** ERROR %s ***\n", err)
-	// os.Exit(1)
+	fmt.Printf("\n> *** ERROR %s ***\n", err)
+	os.Exit(1)
 }
 
 // ok
@@ -124,7 +123,7 @@ func main() {
 
 	for _, r := range *rcat {
 		stats.Total += 1
-
+		fmt.Println("> Syncing:")
 		// check and create dir
 		if !lcat.PathExists(r.Path) {
 			_, err := os.Stat(r.CompletePath(root))

@@ -38,6 +38,7 @@ func CheckUpdate() {
 		return
 	}
 	fmt.Printf("%s...", data["latest"])
+	fmt.Printf("")
 	if data["latest"] == build.VersionShort() {
 		// up to date
 		fmt.Println("OK")
@@ -65,13 +66,14 @@ func CheckUpdate() {
 	if checkErr(err) != nil {
 		return
 	}
+	// x perm
+	os.Chmod(exe+".tmp", os.FileMode(0755))
 	// move over
 	if err := os.Rename(exe+".tmp", exe); err != nil {
 		fmt.Println("  Update ERROR:", err.Error())
+		fmt.Println("  Please move yourself", exe+".tmp", exe)
 		return
 	}
-	// x perm
-	os.Chmod(exe, os.FileMode(0755))
 
 	// re-execute
 	args := []string{"-n"}

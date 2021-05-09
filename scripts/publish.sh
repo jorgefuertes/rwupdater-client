@@ -17,11 +17,11 @@ fi
 # Local
 mkdir -p $LOCAL_SERVER_DIR/bin
 mkdir -p $LOCAL_SERVER_DIR/dist
-rm -f $LOCAL_SERVER_DIR/bin/*
-rm -f $LOCAL_SERVER_DIR/dist/*
+rm -rf $LOCAL_SERVER_DIR/bin/*
+rm -rf $LOCAL_SERVER_DIR/dist/*
 
-cp $SCRIPTS/../bin/* $LOCAL_SERVER_DIR/bin/.
-cp $SCRIPTS/../dist/* $LOCAL_SERVER_DIR/dist/.
+cp -a $SCRIPTS/../bin/* $LOCAL_SERVER_DIR/bin/.
+cp -a $SCRIPTS/../dist/* $LOCAL_SERVER_DIR/dist/.
 
 # Remote
 ssh root@$SERVER_IP <<-CMD
