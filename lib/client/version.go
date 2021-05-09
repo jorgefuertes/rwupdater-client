@@ -71,7 +71,7 @@ func CheckUpdate() {
 	// move over
 	if err := os.Rename(exe+".tmp", exe); err != nil {
 		fmt.Println("  Update ERROR:", err.Error())
-		fmt.Println("  Please move yourself", exe+".tmp", exe)
+		fmt.Println("  Please move by yourself", exe+".tmp", "to", exe)
 		return
 	}
 

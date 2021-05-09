@@ -49,6 +49,10 @@ Loop:
 }
 
 func UpdateFile(arch string, path string, f *file.File) uint64 {
-	bytes, _ := Download(f.Name, path+"/"+f.Path+"/"+f.Name, API+"/files/download/"+arch+"/"+f.ID)
+	name := f.Path + "/" + f.Name
+	if len(name) > 40 {
+		name = "…" + name[len(name)-40:]
+	}
+	bytes, _ := Download(name, path+"/"+f.Path+"/"+f.Name, API+"/files/download/"+arch+"/"+f.ID)
 	return bytes
 }

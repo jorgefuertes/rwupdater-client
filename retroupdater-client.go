@@ -121,9 +121,9 @@ func main() {
 	check(err)
 	ok()
 
+	fmt.Println("> Syncing:")
 	for _, r := range *rcat {
 		stats.Total += 1
-		fmt.Println("> Syncing:")
 		// check and create dir
 		if !lcat.PathExists(r.Path) {
 			_, err := os.Stat(r.CompletePath(root))
